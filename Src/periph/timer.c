@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "timer.h"
 
+extern uint32_t frec;
 /**
  * Инициализация таймера 1 в режиме ЧИМ
  */
@@ -18,23 +19,43 @@ void timer_init(void)
 	TIM1->PSC = 0;
 
 	// Врехний предел счёта
-	TIM1->ARR = 65535;
+	TIM1->ARR = 0;
 
 	// Регистр сравнения канала 1 на половину периода
-	TIM1->CCR1 = 30000;
-	TIM1->CCR2 = 100;
-	TIM1->CCR3 = 0x00;
-	TIM1->CCR4 = 0x00;
+	TIM1->CCR1 = 17;
 
-	TIM1->CCMR1 = (TIM_CCMR1_OC1PE | TIM_CCMR1_OC1M |
-	TIM_CCMR1_OC2PE | TIM_CCMR1_OC2M);
+	// Исходное значение не нулевое, обнуляем.
+	TIM1->CCMR1 = 0;
 
-	TIM1->CCER = (TIM_CCER_CC1E | /*TIM_CCER_CC1P*|*/
-	TIM_CCER_CC1NE | /*TIM_CCER_CC1NP*|*/
-	TIM_CCER_CC2E | /*TIM_CCER_CC2P*|*/
-	TIM_CCER_CC2NE /*|*TIM_CCER_CC2NP*/);
+	// Включение переноса данных в регистр сравннеия из регистра предварительной загрузки.
+	TIM1->CCMR1 |= TIM_CCMR1_OC1PE;
 
-	TIM1->BDTR = (TIM_BDTR_MOE | ((4 << 5) | 10));
-	TIM1->CR1|=TIM_CR1_CEN;
+	//PWM mode 1 - 1 пока не достигли регистра сравнения, 0 - после достижения.
+	TIM1->CCMR1 |= TIM_CCMR1_OC1M_2 |TIM_CCMR1_OC1M_1;
+
+	// Подключения прямого канала к регистру сравнения 1
+	TIM1->CCER = 0;
+	TIM1->CCER |= TIM_CCER_CC1E;
+
+	// Главное подключение выхода
+	TIM1->BDTR = 0;
+	TIM1->BDTR |= TIM_BDTR_MOE;
+
+	TIM1->CR1 |= TIM_CR1_CEN;
+
+}
+
+/**
+ * \brief Функция установки регистра частоты с сохранением длительности импульса
+ */
+void setFrecuency(void)
+{
+	/*
+	 * 4 MHZ - ARR = 18
+	 * 0.1 kHz - ARR = 720
+	 * CCR1 = 17 постоянно
+	 */
+
+	TIM1->ARR = frec;
 
 }

@@ -5,7 +5,7 @@
 #include "timer.h"
 
 float a = 3.f;
-
+ uint32_t frec = 65535;
 
 
 int main(void)
@@ -16,8 +16,9 @@ int main(void)
 
 	while (1)
 	{
-		a++;
-		if (a == 10)
-			a = 0;
+		setFrecuency();
+		for(uint32_t i = 0;i<40000;i++){};
+		frec++;
+		if (frec > 722)frec = 18;
 	}
 }
