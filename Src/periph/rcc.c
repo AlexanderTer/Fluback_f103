@@ -1,7 +1,5 @@
 #include <stm32f1xx.h>
-#include <stdint.h>
 #include "rcc.h"
-#include <system_stm32f1xx.h>
 
 void rcc_init(void)
 {
