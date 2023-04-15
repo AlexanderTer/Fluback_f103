@@ -3,7 +3,7 @@
 
 
 void timer_init(void);
-void setFrecuency(uint32_t frecuency);
+void setFrecuency(int32_t current);
 void PFM_Enable (void);
 void PFM_Disable (void);
 void syncDisable(void);

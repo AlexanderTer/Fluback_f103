@@ -19,10 +19,10 @@
 inline int32_t Trapezoidal_Integrator_Q(Integrator_Q_Struct * integrator, int32_t x)
 {
     // out[n] = s[n-1] + x[n] * k.
-    int32_t out = LIMIT(SUM_Q(integrator->sum, MUL_Q(x, integrator->k, Q_USE)), integrator->sat.min, integrator->sat.max);
+    int32_t out = LIMIT(SUM_Q(integrator->sum, MUL_Q(x, integrator->k)), integrator->sat.min, integrator->sat.max);
 
     // s[n] = out[n] + x[n] * k.
-    integrator->sum = SUM_Q(out, MUL_Q(x, integrator->k, Q_USE));
+    integrator->sum = SUM_Q(out, MUL_Q(x, integrator->k));
 
     return out;
 }
@@ -41,7 +41,7 @@ inline int32_t Trapezoidal_Integrator_Q(Integrator_Q_Struct * integrator, int32_
 inline int32_t PID_Controller_Q(PID_Controller_Q_Struct * pid, int32_t x)
 {
     // Расчёт пропорциональной части.
-    int32_t out_p = MUL_Q(x, pid->kp, Q_USE);
+    int32_t out_p = MUL_Q(x, pid->kp);
 
     // Расчёт интегральной части.
     int32_t out_i = Trapezoidal_Integrator_Q(&pid->integrator, x);

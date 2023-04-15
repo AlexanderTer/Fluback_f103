@@ -11,16 +11,6 @@ void interrupt_init(void)
 	// Разрешаем прерывание глобально.
 	NVIC_EnableIRQ(ADC1_2_IRQn);
 
-
 }
 
-/*
- * \brief Обработчик прерывания АЦП1
- */
-void ADC1_2_IRQHandler(void)
-{
 
-	// Сброс флага прерывания.
-	ADC1->SR &= ~ADC_SR_JEOC;
-	adc_data_handler();
-}

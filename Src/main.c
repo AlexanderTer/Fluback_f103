@@ -3,11 +3,13 @@
 #include "rcc.h"
 #include "gpio.h"
 #include "timer.h"
+#include "dsp.h"
+#include "control.h"
+#include "adc.h"
+#include "interrupt.h"
 
-float a = 3.f;
-uint32_t frec = 65535;
-uint32_t flag = 0;
-
+float current;
+uint32_t arr;
 int main(void)
 {
 	rcc_init();
@@ -16,15 +18,13 @@ int main(void)
 	adc_init();
 	interrupt_init();
 
+	// Включить сигналы PFM и синхронизации.
+	PFM_Enable();
+	syncEnable();
 	while (1)
 	{
 
-		//for(uint32_t i = 0; i< 10000;i++){	asm("nop");};
 
-
-		for(uint32_t i = 0; i< 10000;i++){	asm("nop");};
-
-		asm("nop");
 
 	}
 }

@@ -1,14 +1,15 @@
 #include "stm32f1xx.h"
 #include "timer.h"
+#include "dsp.h"
 
-extern uint32_t frec;
+
 /**
  * Инициализация таймера 1 в режиме ЧИМ
  */
 void timer_init(void)
 {
 
-	// ------------------------------------- Инициализация таймера 1
+	// ------------------------------------- Инициализация таймера 1 - Сигнал чистоты [0.1 ... 4 МГц]
 	// Включаем тактирование таймера TIM1.
 	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
 
@@ -43,7 +44,7 @@ void timer_init(void)
 
 	TIM1->CR1 |= TIM_CR1_CEN;
 
-	// ---------------------- Инициализация таймера 2 -----------------------
+	// ---------------------- Инициализация таймера 2 --- Сигнал частоты 100 кГц
 
 	// Включаем тактирование таймера TIM2.
 	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
@@ -52,7 +53,7 @@ void timer_init(void)
 //	TIM2->CR1 |= TIM_CR1_ARPE;
 
 	// Врехний предел счёта
-	TIM2->ARR = 720-1; // F_CPU / 100 KHZ = 720
+	TIM2->ARR = 720 - 1; // F_CPU / 100 KHZ = 720
 
 	// Регистр сравнения канала 2
 	TIM2->CCR2 = 50;
@@ -70,12 +71,31 @@ void timer_init(void)
 
 	// Включение счёта
 	TIM2->CR1 |= TIM_CR1_CEN;
+
+	// ---------------------- Инициализация таймера 3 --- Сигнал выборки
+
+	// Включаем тактирование таймера TIM2.
+	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+
+	// Предделтель таймера - 1.
+	TIM3->PSC = 0;
+
+	// Врехний предел счёта
+	TIM3->ARR = 2400 - 1; // F_CPU / 30 KHZ = 2400 тиков.
+
+	// TRIGO - сигнал обновления таймера.
+	TIM3->CR2 |= TIM_CR2_MMS_1;
+
+	// Включение счёта
+	TIM3->CR1 |= TIM_CR1_CEN;
+
+
 }
 
 /**
  * \brief Функция установки регистра частоты с сохранением длительности импульса
  */
-void setFrecuency(uint32_t frecuency)
+inline void setFrecuency(int32_t current)
 {
 	/*
 	 * 4 MHZ - ARR = 18
@@ -83,13 +103,16 @@ void setFrecuency(uint32_t frecuency)
 	 * CCR1 = 17 постоянно
 	 */
 
-	TIM1->ARR = frecuency;
+	// ARR = -46.8 * I + 720
+	// [0..15 A] -> [0.1..4 МГц]
+
+	TIM1->ARR = Q20(SUM_Q( MUL_Q(F2Q(-46.8), current), F2Q(720)));
 
 }
 /**
  *\brief Функция включения ЧИМ.
  */
-void PFM_Enable (void)
+inline void PFM_Enable(void)
 {
 	TIM1->CCER |= TIM_CCER_CC1E;
 }
@@ -97,7 +120,7 @@ void PFM_Enable (void)
 /**
  *\brief Функция выключения ЧИМ.
  */
-void PFM_Disable (void)
+inline void PFM_Disable(void)
 {
 	TIM1->CCER &= ~TIM_CCER_CC1E;
 }
@@ -105,7 +128,7 @@ void PFM_Disable (void)
 /**
  *\brief Функция выключения сигнала синхронизации.
  */
-void syncDisable(void)
+inline void syncDisable(void)
 {
 	TIM2->CCER &= ~TIM_CCER_CC2E;
 
@@ -114,7 +137,7 @@ void syncDisable(void)
 /**
  *\brief Функция включения сигнала синхронизации.
  */
-void syncEnable(void)
+inline void syncEnable(void)
 {
 	TIM2->CCER |= TIM_CCER_CC2E;
 

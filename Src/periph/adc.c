@@ -14,9 +14,11 @@ void adc_init(void)
 
 	// Разрешаем тактирование АЦП.
 	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+	RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
 
 	// Включаем АЦП.
 	ADC1->CR2 |= ADC_CR2_ADON;
+	ADC2->CR2 |= ADC_CR2_ADON;
 
 	// Дождаться не менее 10 мкс
 	for (int i = 0; i < 1000; i++)
@@ -24,40 +26,44 @@ void adc_init(void)
 
 	// Начать калибровку и дождаться её окончания.
 	ADC1->CR2 |= ADC_CR2_CAL;
-	uint32_t i = 0;
 	while (ADC1->CR2 & ADC_CR2_CAL);
 
-	// Внешнее события для регуляронй группы - Timer2 CC2 event.
-	ADC1->CR2 |= 3 << ADC_CR2_EXTSEL_Pos;
+	ADC1->CR2 |= ADC_CR2_CAL;
+	while (ADC1->CR2 & ADC_CR2_CAL);
+
+	// Внешнее события для регуляронй группы - Timer3 TRIGO_event.
+	ADC1->CR2 |= 4 << ADC_CR2_EXTSEL_Pos;
+	ADC2->CR2 |= 4 << ADC_CR2_EXTSEL_Pos;
 
 	// Включение триггера выборки регулярной группы.
 	ADC1->CR2 |= ADC_CR2_EXTTRIG;
+	ADC2->CR2 |= ADC_CR2_EXTTRIG;
 
 	// Автоматический режим инжектированной группы - преобразование начнётся после всех регулярных каналов.
 	ADC1->CR1 |= ADC_CR1_JAUTO;
+	ADC2->CR1 |= ADC_CR1_JAUTO;
 
-
-	ADC1->CR1 |= ADC_CR1_SCAN; // разрешение режима сканирования
+	// Включить режим сканирования.
+	ADC1->CR1 |= ADC_CR1_SCAN;
+	ADC2->CR1 |= ADC_CR1_SCAN;
 
 	// Количество преобразований регулярной группы - 1 по дефолту.
 	// Выбор канала первого преобразования регулярной группы.
-	ADC1->SQR3 |= 3 << ADC_SQR3_SQ1_Pos;                  // CH IN10  - Vout
+	ADC1->SQR3 |= 3 << ADC_SQR3_SQ1_Pos;   // CH3 Uout
+	ADC2->SQR3 |= 4 << ADC_SQR3_SQ1_Pos;   // CH4 IL
 
-	// Количество преобразований инжектированных каналов - 3.
-	ADC1->JSQR |= 2 << ADC_JSQR_JL_Pos;
-
+	// Количество преобразований инжектированных каналов - 1 по дефолту.
 	// Выбор каналов инжектированной группы.
-	ADC1->JSQR |= 4 << ADC_JSQR_JSQ2_Pos; // Iout.
-	ADC1->JSQR |= 5 << ADC_JSQR_JSQ3_Pos; // TL.
-	ADC1->JSQR |= 6 << ADC_JSQR_JSQ4_Pos; // Пока не определено.
+	ADC1->JSQR |= 5 << ADC_JSQR_JSQ4_Pos; //СH5 - TL.
+	ADC2->JSQR |= 6 << ADC_JSQR_JSQ4_Pos; // CH6 - Reserved.
 
 	// Устанавливаем длительность выборки в тактах АЦП:28.5 CLK
 	ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP3_Pos);
-	ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP4_Pos);
+	ADC2->SMPR2 |= (3 << ADC_SMPR2_SMP4_Pos);
 	ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP5_Pos);
-	ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP6_Pos);
+	ADC2->SMPR2 |= (3 << ADC_SMPR2_SMP6_Pos);
 
-	// Включение прерывания после окончания группы преобразований
-	ADC1->CR1 |= ADC_CR1_JEOCIE;
+	// Включение прерывания после окончания регулярной группы
+	ADC2->CR1 |= ADC_CR1_JEOCIE;
 
 }

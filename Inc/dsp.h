@@ -8,17 +8,19 @@
 
 
 #define LIMIT(x, min, max) ( ((x) < (min)) ? (min) : ( ((x) > (max)) ? (max) : (x) ) )
+#define Q_USE       (16)
 
 #define SUM_Q(a, b)     ( (a) + (b) )
 #define SUB_Q(a, b)     ( (a) - (b) )
-#define MUL_Q(a, b, q)  ( (int32_t)(((int64_t)(a)*(int64_t)(b)) >> (q)) )
-#define DIV_Q(a, b, q)  ( (int32_t)(((int64_t)(a) << (q)) / (int64_t)(b)) )
+#define MUL_Q(a, b)  ( (int32_t)(((int64_t)(a)*(int64_t)(b)) >> (Q_USE)) )
+#define DIV_Q(a, b)  ( (int32_t)(((int64_t)(a) << (Q_USE)) / (int64_t)(b)) )
 
-#define F2Q(f, q)   ( (int32_t)((1 << (q)) * (f)) )
-#define Q20(i, q)   ( (int32_t)(((i) + (1 << ((q) - 1))) >> (q)) )
-#define Q2F(i, q)   ( (float)Q20((i), (q)) )
+#define F2Q(f)   ( (int32_t)((1 << (Q_USE)) * (f)) )
+#define Q20(i)   ( (int32_t)(((i) + (1 << ((Q_USE) - 1))) >> (Q_USE)) )
+#define Q2F(i)   ( (float)Q20((i), (Q_USE)) )
+//#define Q2F(i)   ( (float) (i) / ((2) << (Q_USE-1)) )
 
-#define Q_USE       (16)
+
 
 
 
